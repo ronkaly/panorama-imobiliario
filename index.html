@@ -1,314 +1,475 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html class="dark" lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa Interativo - Bairros do Nordeste</title>
-  
-  <!-- Fontes do Google -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
-  
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Outfit', sans-serif;
-    }
-
-    body {
-      background-color: #1a1a2e;
-      color: #fff;
-      overflow: hidden;
-    }
-
-    #map {
-      height: 100vh;
-      width: 100vw;
-    }
-
-    /* Info Box usando Glassmorphism */
-    .info-box {
-      position: absolute;
-      top: 30px;
-      left: 30px;
-      z-index: 10;
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 24px;
-      width: 320px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-      transition: all 0.3s ease;
-      pointer-events: none; /* Para não bloquear o clique no mapa */
-    }
-
-    .info-box h1 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .info-box #bairro-name {
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: #38bdf8;
-      text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
-      min-height: 48px;
-    }
-
-    .info-box p {
-      font-size: 0.9rem;
-      color: #cbd5e1;
-      margin-top: 12px;
-      line-height: 1.5;
-    }
-
-    /* Select da Cidade */
-    .city-select {
-      width: 100%;
-      padding: 12px 14px;
-      margin-bottom: 20px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 10px;
-      color: #fff;
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.05rem;
-      font-weight: 500;
-      outline: none;
-      cursor: pointer;
-      pointer-events: auto; /* IMPORTANTE: Habilita os cliques ignorando o pointer-events: none do pai */
-      backdrop-filter: blur(5px);
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      transition: all 0.2s ease;
-    }
-
-    .city-select:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: #38bdf8;
-    }
-
-    .city-select:focus {
-      border-color: #0ea5e9;
-      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
-    }
-
-    .city-select option {
-      background-color: #1a1a2e;
-      color: #fff;
-      padding: 10px;
-    }
-
-    /* Customização dos controles do Google Maps */
-    .gmnoprint {
-      opacity: 0.8;
-    }
-  </style>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>ACORI - Pesquisa de Mercado Imobiliário</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#000000",
+                        "secondary-container": "#454747",
+                        "primary-fixed": "#ffdf9e",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "surface": "#121212",
+                        "inverse-on-surface": "#303030",
+                        "surface-container-high": "#2a2a2a",
+                        "primary": "#ffe4af",
+                        "outline-variant": "#4f4632",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "on-secondary": "#2f3131",
+                        "surface-container-highest": "#353535",
+                        "on-surface": "#e2e2e2",
+                        "on-tertiary": "#313030",
+                        "on-primary-fixed": "#261a00",
+                        "on-error-container": "#ffdad6",
+                        "error": "#ffb4ab",
+                        "surface-container": "#1f1f1f",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "on-background": "#e2e2e2",
+                        "inverse-surface": "#e2e2e2",
+                        "error-container": "#93000a",
+                        "surface-bright": "#393939",
+                        "on-primary": "#3f2e00",
+                        "outline": "#9c8f78",
+                        "surface-tint": "#fabd00",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "tertiary": "#e9e6e6",
+                        "surface-dim": "#131313",
+                        "surface-container-low": "#1b1b1b",
+                        "secondary-fixed": "#e2e2e2",
+                        "secondary": "#c6c6c7",
+                        "on-secondary-fixed-variant": "#454747",
+                        "tertiary-container": "#cdcaca",
+                        "on-surface-variant": "#d4c5ab",
+                        "surface-variant": "#353535",
+                        "surface-container-lowest": "#0e0e0e",
+                        "primary-container": "#ffc107",
+                        "primary-fixed-dim": "#fabd00",
+                        "on-secondary-container": "#b4b5b5",
+                        "on-primary-container": "#6d5100",
+                        "on-error": "#690005",
+                        "on-primary-fixed-variant": "#5b4300",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-tertiary-container": "#565555",
+                        "inverse-primary": "#785900",
+                        "tertiary-fixed": "#e5e2e1"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Hanken Grotesk"],
+                        "body-md": ["Inter"],
+                        "data-label": ["JetBrains Mono"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #000000; color: #e2e2e2; overflow-x: hidden; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glow-gold { box-shadow: 0 0 20px rgba(255, 193, 7, 0.15); }
+        .map-container { background-image: radial-gradient(circle at 2px 2px, #262626 1px, transparent 0); background-size: 24px 24px; }
+        .glass-panel { backdrop-filter: blur(12px); background-color: rgba(18, 18, 18, 0.85); border: 1px solid rgba(38, 38, 38, 0.5); }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4f4632; border-radius: 2px; }
+        
+        #loading-screen {
+            position: fixed; inset: 0; z-index: 9999;
+            background: #000; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spin-slow { animation: spin 3s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .gm-style iframe + div { border:none!important; }
+        .gm-style-cc { display: none; }
+    </style>
 </head>
-<body>
+<body class="font-body-md text-body-md selection:bg-primary-container selection:text-on-primary-container">
 
-  <div class="info-box">
-    <select id="city-selector" class="city-select" onchange="changeCity()">
-      <option value="natal">Natal (RN)</option>
-      <option value="maceio">Maceió (AL)</option>
-      <option value="salvador">Salvador (BA)</option>
-      <option value="fortaleza">Fortaleza (CE)</option>
-      <option value="saoluis">São Luís (MA)</option>
-      <option value="joaopessoa">João Pessoa (PB)</option>
-      <option value="recife">Recife (PE)</option>
-      <option value="teresina">Teresina (PI)</option>
-      <option value="aracaju">Aracaju (SE)</option>
-    </select>
+<div id="loading-screen">
+    <img alt="ACORI Logo" class="w-24 h-24 object-contain spin-slow mb-4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_qmkfF-Uv3V2FeSQ86qujx46Nelohqd1tdRe85aIVLwTAUqqWSOOPZvnNHNsSDg1YYnQpiW1M7ao7NflhlWrDoW2eYDCVFeP92dW2G8iiSi1LSNjpqj4yNIFZni0lKKpDXul_r_1JxmOvasigZwtrqv6crOt5Di8OtJ3jl9coQDnL86IHi1ao_Ma8m8-eDpLytcgEChpJjx0eyrAco9x8r8kaTrMcafkz3Zh0gEknQmRGMhMJA5-laoR6yQZkCK7RxcF36NVq-ZDD">
+    <p class="text-primary font-data-label tracking-widest uppercase text-sm">Pesquisando mercado local...</p>
+</div>
 
-    <h1>Bairro</h1>
-    <div id="bairro-name">Passe o mouse...</div>
-    <p>Navegue pelo mapa para visualizar a delimitação geográfica de cada bairro.</p>
-  </div>
+<!-- SideNavBar -->
+<nav class="fixed left-0 top-0 h-full z-50 flex flex-col items-center py-8 bg-surface-container-low border-r border-outline-variant/30 w-20">
+    <div class="mb-10 transition-transform hover:scale-105 active:scale-90">
+        <img alt="ACORI Logo Icon" class="w-10 h-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_qmkfF-Uv3V2FeSQ86qujx46Nelohqd1tdRe85aIVLwTAUqqWSOOPZvnNHNsSDg1YYnQpiW1M7ao7NflhlWrDoW2eYDCVFeP92dW2G8iiSi1LSNjpqj4yNIFZni0lKKpDXul_r_1JxmOvasigZwtrqv6crOt5Di8OtJ3jl9coQDnL86IHi1ao_Ma8m8-eDpLytcgEChpJjx0eyrAco9x8r8kaTrMcafkz3Zh0gEknQmRGMhMJA5-laoR6yQZkCK7RxcF36NVq-ZDD">
+    </div>
+    <div class="flex flex-col gap-6 items-center flex-1">
+        <button class="w-12 h-12 flex items-center justify-center rounded-lg text-primary border-l-2 border-primary bg-primary/10 transition-all active:scale-95" title="Analytics"><span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span></button>
+        <button class="w-12 h-12 flex items-center justify-center rounded-lg text-on-surface-variant opacity-70 hover:bg-surface-variant/50 hover:text-primary transition-all active:scale-95" title="Demographics"><span class="material-symbols-outlined">group</span></button>
+        <button class="w-12 h-12 flex items-center justify-center rounded-lg text-on-surface-variant opacity-70 hover:bg-surface-variant/50 hover:text-primary transition-all active:scale-95" title="Market Trends"><span class="material-symbols-outlined">trending_up</span></button>
+        <button class="w-12 h-12 flex items-center justify-center rounded-lg text-on-surface-variant opacity-70 hover:bg-surface-variant/50 hover:text-primary transition-all active:scale-95" title="Buyer Profiles"><span class="material-symbols-outlined">person_search</span></button>
+        <button class="w-12 h-12 flex items-center justify-center rounded-lg text-on-surface-variant opacity-70 hover:bg-surface-variant/50 hover:text-primary transition-all active:scale-95" title="Reports"><span class="material-symbols-outlined">description</span></button>
+    </div>
+</nav>
 
-  <div id="map"></div>
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-20 h-16 z-40 flex justify-between items-center px-8 bg-background/80 backdrop-blur-md border-b border-outline-variant/20 pointer-events-auto">
+    <div class="flex items-center gap-8">
+        <img alt="ACORI Intelligence" class="h-6 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD4nGG_JqcDsbP6HEZQ8G9ssPorRbmbxOF0wi1hU3t1KmXV46Sg1gzYne_a9a7xSvt-XngbPtBEtCVQL_ArSF8BJR4uwMQ3KvWEBi_cetl2HWeNcCpo1tDRQF4NHaZj5-EDbaSGO2wktNxmoQsRGyB7Q0ylNEHzUtboiDjF2euc798PeSjkwe8NkgH41zAVNuVz0cVg1kVbX3dgxUS8NQZa0JLmn5qAfiga4mGvu6UzLGO16yHLAbelJkSe-UyrpKCPVMMFSfjuE2NX">
+    </div>
+    <div class="flex items-center gap-6">
+        <select id="citySelect" class="bg-surface-container-high border-2 border-primary-container text-on-surface font-bold text-sm uppercase tracking-wider rounded px-4 py-1.5 focus:outline-none hover:bg-primary-container hover:text-on-primary-container transition-all cursor-pointer pointer-events-auto">
+            <option value="natal">Natal/RN</option>
+            <option value="joaopessoa">João Pessoa/PB</option>
+            <option value="recife">Recife/PE</option>
+            <option value="maceio">Maceió/AL</option>
+            <option value="aracaju">Aracaju/SE</option>
+            <option value="salvador">Salvador/BA</option>
+            <option value="fortaleza">Fortaleza/CE</option>
+            <option value="teresina">Teresina/PI</option>
+            <option value="saoluis">São Luís/MA</option>
+        </select>
+        <button class="bg-primary-container text-on-primary-fixed font-bold px-4 py-1.5 rounded-lg text-sm transition-all hover:scale-105 active:scale-95 whitespace-nowrap">Conheça a IA para Corretores</button>
+    </div>
+</header>
 
-  <!-- Carrega a variável nordesteGeoJson -->
-  <script src="./nordeste_data.js"></script>
+<!-- Main Content Canvas -->
+<main class="ml-20 pt-16 h-screen flex flex-col md:flex-row overflow-hidden">
+    <!-- Interactive Map Area -->
+    <section class="flex-1 relative map-container overflow-hidden p-8">
+        <div id="map" class="w-full h-full rounded-xl overflow-hidden relative bg-[#0a0a0a] border border-outline-variant/30"></div>
+    </section>
 
-  <script>
+    <!-- Right Side Data Panel -->
+    <aside class="w-full md:w-[420px] border-l border-outline-variant/30 flex flex-col overflow-y-auto custom-scrollbar bg-surface-container-high glow-gold border-primary/20">
+        <div class="p-8 space-y-8 pb-10" id="dataPanel">
+            <div id="initialMessage" class="text-on-surface-variant italic text-center mt-10">
+                Selecione um bairro no mapa para visualizar a pesquisa do mercado local.
+            </div>
+            
+            <div id="contentPanel" style="display: none;">
+                <!-- Header -->
+                <header class="space-y-1">
+                    <h2 id="bairroName" class="font-headline-lg text-headline-lg text-primary">Nome Bairro</h2>
+                    <p id="cityName" class="text-on-surface-variant font-body-md italic">Natal, Rio Grande do Norte</p>
+                </header>
+                
+                <!-- Key Metrics Grid -->
+                <div class="grid grid-cols-2 gap-4 mt-8">
+                    <div class="bg-surface-container-low p-4 rounded border border-outline-variant/30 hover:border-primary/40 transition-colors relative overflow-hidden group">
+                        <div class="absolute top-2 right-2 text-primary"><span class="material-symbols-outlined text-sm">trending_up</span></div>
+                        <span class="font-data-label text-data-label text-on-surface-variant uppercase">Preço Venda (M²)</span>
+                        <div id="precoVenda" class="mt-2 text-primary font-data-label text-[24px]">R$ -</div>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded border border-outline-variant/30 hover:border-primary/40 transition-colors">
+                        <span class="font-data-label text-data-label text-on-surface-variant uppercase">Aluguel Médio (M²)</span>
+                        <div id="precoAluguel" class="mt-2 text-primary font-data-label text-[24px]">R$ -</div>
+                    </div>
+                </div>
+                
+                <!-- Market Velocity -->
+                <div class="space-y-4 mt-8">
+                    <div class="flex justify-between items-end border-b border-outline-variant/20 pb-2">
+                        <span class="font-data-label text-data-label text-on-surface uppercase">Tempo Médio de Venda</span>
+                        <span id="tempoVenda" class="font-data-label text-[18px] text-primary">- Meses</span>
+                    </div>
+                    <div class="w-full h-1 bg-surface-container-highest overflow-hidden">
+                        <div class="w-2/3 h-full bg-primary glow-gold"></div>
+                    </div>
+                </div>
+                
+                <!-- Buyer Profile -->
+                <section class="space-y-4 mt-8">
+                    <h3 class="font-data-label text-data-label text-on-surface border-l-4 border-primary pl-3 uppercase">Perfil do Comprador</h3>
+                    <div class="bg-[#0a0a0a] border-b border-outline-variant p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-on-surface-variant text-sm">Idade Média</span>
+                            <span id="perfilIdade" class="font-data-label text-on-surface text-sm">- anos</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-on-surface-variant text-sm">Renda Mensal</span>
+                            <span id="perfilRenda" class="font-data-label text-on-surface text-sm">R$ -</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-on-surface-variant text-sm">Motivação</span>
+                            <span id="perfilMotivacao" class="font-data-label text-primary text-sm uppercase">-</span>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Market Trends -->
+                <section class="space-y-4 mt-8">
+                    <h3 class="font-data-label text-data-label text-on-surface border-l-4 border-primary pl-3 uppercase">Tendências (12m)</h3>
+                    <ul id="tendenciasList" class="space-y-3">
+                        <!-- Populated by JS -->
+                    </ul>
+                </section>
+                
+                <!-- Most Sought After -->
+                <section class="bg-primary/5 p-4 border border-primary/20 rounded mt-8">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-primary">star_rate</span>
+                        <h3 class="font-data-label text-data-label text-primary uppercase">Mais Procurado</h3>
+                    </div>
+                    <p id="maisProcurado" class="text-on-surface font-semibold text-sm">-</p>
+                </section>
+                
+                <!-- Comparison -->
+                <section class="space-y-3 mt-8">
+                    <h3 class="font-data-label text-data-label text-on-surface-variant uppercase text-[10px] tracking-widest">Benchmarking</h3>
+                    <div id="comparacaoGrid" class="grid grid-cols-2 gap-3">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+                
+                <!-- Footer Sources -->
+                <footer class="pt-8 pb-4 border-t border-outline-variant/20 pb-12 mt-8">
+                    <div class="flex flex-wrap gap-4 items-center opacity-40 hover:opacity-100 transition-opacity">
+                        <span class="font-data-label text-[10px] text-on-surface uppercase">Fontes:</span>
+                        <span class="font-data-label text-[10px]">FIPEZAP</span>
+                        <span class="font-data-label text-[10px]">ZAP IMÓVEIS</span>
+                        <span class="font-data-label text-[10px]">OLX</span>
+                        <span class="font-data-label text-[10px]">PREFEITURA LOCAL</span>
+                    </div>
+                </footer>
+            </div>
+            
+            <footer class="pt-8 pb-6 border-t border-outline-variant/30 mt-8 space-y-2">
+                <p class="text-xs text-on-surface-variant uppercase tracking-widest font-data-label">
+                    Desenvolvido por DUNA Labs Creative Technologies
+                </p>
+                <p class="text-sm text-on-surface-variant">
+                    Conheça o <a href="https://www.acori.ai/" target="_blank" class="text-primary hover:underline font-semibold">ACORI</a>, o assistente inteligente para corretores imobiliários.
+                </p>
+            </footer>
+        </div>
+    </aside>
+</main>
+
+<!-- Interactive Layer: Hover Info -->
+<div class="fixed pointer-events-none opacity-0 glass-panel p-2 px-3 rounded text-[10px] font-data-label text-primary z-[60] transition-opacity uppercase tracking-tighter" id="tooltip">
+    Bairro
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhTczPdyON-xuGD5GWlqMOmwelPjAE3Jw&libraries=geometry"></script>
+<script src="nordeste_data.js"></script>
+<script src="market_data.js"></script>
+<script>
     let map;
-
-    const capitalsCoords = {
-      natal: { lat: -5.8153, lng: -35.2101 },
-      maceio: { lat: -9.6659, lng: -35.7350 },
-      salvador: { lat: -12.9714, lng: -38.5014 },
-      fortaleza: { lat: -3.7172, lng: -38.5430 },
-      saoluis: { lat: -2.5297, lng: -44.3028 },
-      joaopessoa: { lat: -7.1150, lng: -34.8631 },
-      recife: { lat: -8.0476, lng: -34.8770 },
-      teresina: { lat: -5.0892, lng: -42.8016 },
-      aracaju: { lat: -10.9472, lng: -37.0731 }
+    let currentCity = 'natal';
+    let hoveredFeature = null;
+    let selectedFeature = null;
+    
+    const cityCoords = {
+        'natal': { lat: -5.805, lng: -35.21 },
+        'joaopessoa': { lat: -7.115, lng: -34.863 },
+        'recife': { lat: -8.047, lng: -34.877 },
+        'maceio': { lat: -9.666, lng: -35.735 },
+        'aracaju': { lat: -10.947, lng: -37.073 },
+        'salvador': { lat: -12.971, lng: -38.510 },
+        'fortaleza': { lat: -3.717, lng: -38.543 },
+        'teresina': { lat: -5.089, lng: -42.801 },
+        'saoluis': { lat: -2.530, lng: -44.302 }
+    };
+    
+    const cityNames = {
+        'natal': 'Natal, Rio Grande do Norte',
+        'joaopessoa': 'João Pessoa, Paraíba',
+        'recife': 'Recife, Pernambuco',
+        'maceio': 'Maceió, Alagoas',
+        'aracaju': 'Aracaju, Sergipe',
+        'salvador': 'Salvador, Bahia',
+        'fortaleza': 'Fortaleza, Ceará',
+        'teresina': 'Teresina, Piauí',
+        'saoluis': 'São Luís, Maranhão'
     };
 
     function initMap() {
-      // Configuração inicial do mapa centrado em Natal
-      map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 12.5,
-        center: capitalsCoords["natal"],
-        disableDefaultUI: true, // Interface mais limpa
-        zoomControl: true,
-        styles: [
-          // Estilo escuro moderno para o Google Maps
-          { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-          { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-          { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-          {
-            featureType: "administrative.locality",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#d59563" }],
-          },
-          {
-            featureType: "poi",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#d59563" }],
-          },
-          {
-            featureType: "poi.park",
-            elementType: "geometry",
-            stylers: [{ color: "#263c3f" }],
-          },
-          {
-            featureType: "poi.park",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#6b9a76" }],
-          },
-          {
-            featureType: "road",
-            elementType: "geometry",
-            stylers: [{ color: "#38414e" }],
-          },
-          {
-            featureType: "road",
-            elementType: "geometry.stroke",
-            stylers: [{ color: "#212a37" }],
-          },
-          {
-            featureType: "road",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#9ca5b3" }],
-          },
-          {
-            featureType: "road.highway",
-            elementType: "geometry",
-            stylers: [{ color: "#746855" }],
-          },
-          {
-            featureType: "road.highway",
-            elementType: "geometry.stroke",
-            stylers: [{ color: "#1f2835" }],
-          },
-          {
-            featureType: "road.highway",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#f3d19c" }],
-          },
-          {
-            featureType: "transit",
-            elementType: "geometry",
-            stylers: [{ color: "#2f3948" }],
-          },
-          {
-            featureType: "transit.station",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#d59563" }],
-          },
-          {
-            featureType: "water",
-            elementType: "geometry",
-            stylers: [{ color: "#17263c" }],
-          },
-          {
-            featureType: "water",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#515c6d" }],
-          },
-          {
-            featureType: "water",
-            elementType: "labels.text.stroke",
-            stylers: [{ color: "#17263c" }],
-          },
-        ],
-      });
+        // Dark theme map style
+        const mapStyle = [
+            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+            { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+            { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+            { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+            { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+            { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+            { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+            { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+            { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+            { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+            { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+            { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+            { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+            { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+            { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+            { featureType: "water", elementType: "labels.text.stroke", stylers: [{ color: "#17263c" }] }
+        ];
 
-      // Adiciona o GeoJSON carregado do arquivo nordeste_data.js
-      if (typeof nordesteGeoJson !== 'undefined' && nordesteGeoJson["natal"]) {
-        map.data.addGeoJson(nordesteGeoJson["natal"]);
-      } else {
-        document.getElementById('bairro-name').innerText = "Erro ao carregar dados";
-      }
-
-      // Estilo Padrão para os bairros
-      map.data.setStyle({
-        fillColor: '#0ea5e9',
-        fillOpacity: 0.05, // Quase invisível
-        strokeColor: '#0ea5e9',
-        strokeWeight: 1,
-        strokeOpacity: 0.3
-      });
-
-      const titleElement = document.getElementById('bairro-name');
-
-      // Evento: Passar o mouse sobre um bairro
-      map.data.addListener('mouseover', function(event) {
-        // Atualiza a caixa de informações
-        let nome = event.feature.getProperty('nome');
-        titleElement.innerText = nome ? nome : "Desconhecido";
-        
-        // Destaca o polígono
-        map.data.overrideStyle(event.feature, {
-          fillColor: '#38bdf8',
-          fillOpacity: 0.35,
-          strokeColor: '#38bdf8',
-          strokeWeight: 2,
-          strokeOpacity: 1,
-          zIndex: 999
+        map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 12,
+            center: cityCoords['natal'],
+            styles: mapStyle,
+            disableDefaultUI: true,
+            zoomControl: true
         });
-      });
 
-      // Evento: Tirar o mouse
-      map.data.addListener('mouseout', function(event) {
-        map.data.revertStyle();
-        titleElement.innerText = "Passe o mouse...";
-      });
+        loadCityData('natal');
+
+        map.data.addListener('mouseover', function(event) {
+            hoveredFeature = event.feature;
+            map.data.revertStyle();
+            applyStyle();
+            
+            const tooltip = document.getElementById('tooltip');
+            tooltip.textContent = event.feature.getProperty('nome');
+            tooltip.style.opacity = '1';
+        });
+        
+        map.data.addListener('mouseout', function(event) {
+            hoveredFeature = null;
+            map.data.revertStyle();
+            applyStyle();
+            
+            document.getElementById('tooltip').style.opacity = '0';
+        });
+        
+        document.querySelector('.map-container').addEventListener('mousemove', (e) => {
+            const tooltip = document.getElementById('tooltip');
+            if(tooltip.style.opacity === '1') {
+                tooltip.style.left = (e.clientX + 15) + 'px';
+                tooltip.style.top = (e.clientY + 15) + 'px';
+            }
+        });
+
+        map.data.addListener('click', function(event) {
+            selectedFeature = event.feature;
+            map.data.revertStyle();
+            applyStyle();
+            
+            updateSidePanel(event.feature.getProperty('nome'));
+        });
     }
 
-    // Função global chamada pelo <select>
-    function changeCity() {
-      const cityId = document.getElementById('city-selector').value;
-      
-      // Limpa os dados atuais da tela
-      map.data.forEach(function(feature) {
-        map.data.remove(feature);
-      });
-      
-      // Adiciona a nova cidade
-      if (typeof nordesteGeoJson !== 'undefined' && nordesteGeoJson[cityId]) {
-        map.data.addGeoJson(nordesteGeoJson[cityId]);
-      }
-      
-      // Centraliza a câmera de forma suave (se estiver perto) ou pula pra lá
-      map.panTo(capitalsCoords[cityId]);
-      map.setZoom(12); // Um zoom levemente menor pra dar contexto visual 
+    function applyStyle() {
+        map.data.setStyle(function(feature) {
+            const isHovered = feature === hoveredFeature;
+            const isSelected = feature === selectedFeature;
+            
+            if (isSelected) {
+                return {
+                    fillColor: '#ffc107',
+                    fillOpacity: 0.3,
+                    strokeColor: '#ffc107',
+                    strokeWeight: 3,
+                    zIndex: 3
+                };
+            } else if (isHovered) {
+                return {
+                    fillColor: '#ffdf9e',
+                    fillOpacity: 0.2,
+                    strokeColor: '#ffc107',
+                    strokeWeight: 2,
+                    zIndex: 2
+                };
+            }
+            return {
+                fillColor: '#000000',
+                fillOpacity: 0.0,
+                strokeColor: '#4f4632',
+                strokeWeight: 1,
+                zIndex: 1
+            };
+        });
     }
-  </script>
-  
-  <!-- Substitua SUA_CHAVE_AQUI pela chave da API do Google Maps -->
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhTczPdyON-xuGD5GWlqMOmwelPjAE3Jw&callback=initMap"></script>
+
+    function loadCityData(cityCode) {
+        map.data.forEach(function(feature) {
+            map.data.remove(feature);
+        });
+        selectedFeature = null;
+        
+        let dataObj = nordesteGeoJson[cityCode];
+        
+        if(dataObj) {
+            map.data.addGeoJson(dataObj);
+            applyStyle();
+        }
+        
+        document.getElementById('initialMessage').style.display = 'block';
+        document.getElementById('contentPanel').style.display = 'none';
+    }
+
+    function updateSidePanel(bairroNome) {
+        document.getElementById('initialMessage').style.display = 'none';
+        document.getElementById('contentPanel').style.display = 'block';
+        
+        document.getElementById('bairroName').textContent = bairroNome;
+        document.getElementById('cityName').textContent = cityNames[currentCity];
+        
+        // Lookup data from generated market_data.js
+        const cityData = marketData[currentCity];
+        const data = (cityData && cityData[bairroNome]) ? cityData[bairroNome] : null;
+        
+        if (data) {
+            document.getElementById('precoVenda').innerHTML = `${data.precoVenda}<span class="text-sm opacity-60 ml-1">/m²</span>`;
+            document.getElementById('precoAluguel').innerHTML = `${data.precoAluguel}<span class="text-sm opacity-60 ml-1">/m²</span>`;
+            document.getElementById('tempoVenda').textContent = data.tempoVenda;
+            document.getElementById('perfilIdade').textContent = data.perfil.idade;
+            document.getElementById('perfilRenda').textContent = data.perfil.renda;
+            document.getElementById('perfilMotivacao').textContent = data.perfil.motivacao;
+            document.getElementById('maisProcurado').textContent = data.procurado;
+            
+            const ul = document.getElementById('tendenciasList');
+            ul.innerHTML = '';
+            data.tendencias.forEach(t => {
+                ul.innerHTML += `<li class="flex gap-3 items-start"><span class="material-symbols-outlined text-primary text-sm mt-1">arrow_right_alt</span><p class="text-sm text-on-surface-variant">${t}</p></li>`;
+            });
+            
+            const compGrid = document.getElementById('comparacaoGrid');
+            compGrid.innerHTML = '';
+            if(data.comparacao) {
+                data.comparacao.forEach(c => {
+                    const isPos = c.variacao.startsWith('+');
+                    const colorClass = isPos ? 'text-primary' : 'text-error';
+                    compGrid.innerHTML += `
+                    <div class="p-3 bg-surface-container text-center border-t border-outline">
+                        <p class="font-data-label text-[10px] uppercase opacity-60">${c.nome}</p>
+                        <p class="${colorClass} text-xs font-bold mt-1">${c.variacao} Preço</p>
+                    </div>`;
+                });
+            }
+        } else {
+            // Fallback if data is somehow missing
+            document.getElementById('precoVenda').textContent = "Dados indisponíveis";
+        }
+    }
+
+    document.getElementById('citySelect').addEventListener('change', function(e) {
+        const selected = e.target.value;
+        if(selected === currentCity) return;
+        
+        const loader = document.getElementById('loading-screen');
+        loader.style.display = 'flex';
+        
+        // Simular o delay da IA gerativa buscando dados de mercado
+        setTimeout(() => {
+            currentCity = selected;
+            map.panTo(cityCoords[currentCity]);
+            map.setZoom(12);
+            loadCityData(currentCity);
+            
+            loader.style.display = 'none';
+        }, 1800); // 1.8 segundos de tela de carregamento simulado
+    });
+
+    window.onload = initMap;
+</script>
 
 </body>
 </html>
