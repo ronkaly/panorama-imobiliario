@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Interativo - Bairros do Nordeste</title>
+  
+  <!-- Fontes do Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    body {
+      background-color: #1a1a2e;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #map {
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* Info Box usando Glassmorphism */
+    .info-box {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      z-index: 10;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 24px;
+      width: 320px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      pointer-events: none; /* Para não bloquear o clique no mapa */
+    }
+
+    .info-box h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .info-box #bairro-name {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
+      min-height: 48px;
+    }
+
+    .info-box p {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+
+    /* Select da Cidade */
+    .city-select {
+      width: 100%;
+      padding: 12px 14px;
+      margin-bottom: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      pointer-events: auto; /* IMPORTANTE: Habilita os cliques ignorando o pointer-events: none do pai */
+      backdrop-filter: blur(5px);
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      transition: all 0.2s ease;
+    }
+
+    .city-select:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #38bdf8;
+    }
+
+    .city-select:focus {
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    }
+
+    .city-select option {
+      background-color: #1a1a2e;
+      color: #fff;
+      padding: 10px;
+    }
+
+    /* Customização dos controles do Google Maps */
+    .gmnoprint {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="info-box">
+    <select id="city-selector" class="city-select" onchange="changeCity()">
+      <option value="natal">Natal (RN)</option>
+      <option value="maceio">Maceió (AL)</option>
+      <option value="salvador">Salvador (BA)</option>
+      <option value="fortaleza">Fortaleza (CE)</option>
+      <option value="saoluis">São Luís (MA)</option>
+      <option value="joaopessoa">João Pessoa (PB)</option>
+      <option value="recife">Recife (PE)</option>
+      <option value="teresina">Teresina (PI)</option>
+      <option value="aracaju">Aracaju (SE)</option>
+    </select>
+
+    <h1>Bairro</h1>
+    <div id="bairro-name">Passe o mouse...</div>
+    <p>Navegue pelo mapa para visualizar a delimitação geográfica de cada bairro.</p>
+  </div>
+
+  <div id="map"></div>
+
+  <!-- Carrega a variável nordesteGeoJson -->
+  <script src="./nordeste_data.js"></script>
+
+  <script>
+    let map;
+
+    const capitalsCoords = {
+      natal: { lat: -5.8153, lng: -35.2101 },
+      maceio: { lat: -9.6659, lng: -35.7350 },
+      salvador: { lat: -12.9714, lng: -38.5014 },
+      fortaleza: { lat: -3.7172, lng: -38.5430 },
+      saoluis: { lat: -2.5297, lng: -44.3028 },
+      joaopessoa: { lat: -7.1150, lng: -34.8631 },
+      recife: { lat: -8.0476, lng: -34.8770 },
+      teresina: { lat: -5.0892, lng: -42.8016 },
+      aracaju: { lat: -10.9472, lng: -37.0731 }
+    };
+
+    function initMap() {
+      // Configuração inicial do mapa centrado em Natal
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12.5,
+        center: capitalsCoords["natal"],
+        disableDefaultUI: true, // Interface mais limpa
+        zoomControl: true,
+        styles: [
+          // Estilo escuro moderno para o Google Maps
+          { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+          { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+          { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+          {
+            featureType: "administrative.locality",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#d59563" }],
+          },
+          {
+            featureType: "poi",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#d59563" }],
+          },
+          {
+            featureType: "poi.park",
+            elementType: "geometry",
+            stylers: [{ color: "#263c3f" }],
+          },
+          {
+            featureType: "poi.park",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#6b9a76" }],
+          },
+          {
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [{ color: "#38414e" }],
+          },
+          {
+            featureType: "road",
+            elementType: "geometry.stroke",
+            stylers: [{ color: "#212a37" }],
+          },
+          {
+            featureType: "road",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#9ca5b3" }],
+          },
+          {
+            featureType: "road.highway",
+            elementType: "geometry",
+            stylers: [{ color: "#746855" }],
+          },
+          {
+            featureType: "road.highway",
+            elementType: "geometry.stroke",
+            stylers: [{ color: "#1f2835" }],
+          },
+          {
+            featureType: "road.highway",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#f3d19c" }],
+          },
+          {
+            featureType: "transit",
+            elementType: "geometry",
+            stylers: [{ color: "#2f3948" }],
+          },
+          {
+            featureType: "transit.station",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#d59563" }],
+          },
+          {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#17263c" }],
+          },
+          {
+            featureType: "water",
+            elementType: "labels.text.fill",
+            stylers: [{ color: "#515c6d" }],
+          },
+          {
+            featureType: "water",
+            elementType: "labels.text.stroke",
+            stylers: [{ color: "#17263c" }],
+          },
+        ],
+      });
+
+      // Adiciona o GeoJSON carregado do arquivo nordeste_data.js
+      if (typeof nordesteGeoJson !== 'undefined' && nordesteGeoJson["natal"]) {
+        map.data.addGeoJson(nordesteGeoJson["natal"]);
+      } else {
+        document.getElementById('bairro-name').innerText = "Erro ao carregar dados";
+      }
+
+      // Estilo Padrão para os bairros
+      map.data.setStyle({
+        fillColor: '#0ea5e9',
+        fillOpacity: 0.05, // Quase invisível
+        strokeColor: '#0ea5e9',
+        strokeWeight: 1,
+        strokeOpacity: 0.3
+      });
+
+      const titleElement = document.getElementById('bairro-name');
+
+      // Evento: Passar o mouse sobre um bairro
+      map.data.addListener('mouseover', function(event) {
+        // Atualiza a caixa de informações
+        let nome = event.feature.getProperty('nome');
+        titleElement.innerText = nome ? nome : "Desconhecido";
+        
+        // Destaca o polígono
+        map.data.overrideStyle(event.feature, {
+          fillColor: '#38bdf8',
+          fillOpacity: 0.35,
+          strokeColor: '#38bdf8',
+          strokeWeight: 2,
+          strokeOpacity: 1,
+          zIndex: 999
+        });
+      });
+
+      // Evento: Tirar o mouse
+      map.data.addListener('mouseout', function(event) {
+        map.data.revertStyle();
+        titleElement.innerText = "Passe o mouse...";
+      });
+    }
+
+    // Função global chamada pelo <select>
+    function changeCity() {
+      const cityId = document.getElementById('city-selector').value;
+      
+      // Limpa os dados atuais da tela
+      map.data.forEach(function(feature) {
+        map.data.remove(feature);
+      });
+      
+      // Adiciona a nova cidade
+      if (typeof nordesteGeoJson !== 'undefined' && nordesteGeoJson[cityId]) {
+        map.data.addGeoJson(nordesteGeoJson[cityId]);
+      }
+      
+      // Centraliza a câmera de forma suave (se estiver perto) ou pula pra lá
+      map.panTo(capitalsCoords[cityId]);
+      map.setZoom(12); // Um zoom levemente menor pra dar contexto visual 
+    }
+  </script>
+  
+  <!-- Substitua SUA_CHAVE_AQUI pela chave da API do Google Maps -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhTczPdyON-xuGD5GWlqMOmwelPjAE3Jw&callback=initMap"></script>
+
+</body>
+</html>
